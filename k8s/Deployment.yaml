@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      containers:
+      - name: backend-api
+        image: uzbuzbiz/api-nest:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000 # Puerto interno de NestJS
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: backend-db-secrets
+              key: DB_HOST
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: backend-db-secrets
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-db-secrets
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: backend-db-secrets
+              key: DB_NAME
+        - name: DB_PORT
+          value: "5432" # Este no es secreto, puede quedarse así
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: jenkins
+spec:
+  selector:
+    app: backend-api
+  ports:
+    - port: 80          # Puerto por el que escucha el Service (Ingress)
+      targetPort: 3000  # Puerto al que redirige dentro del Pod (NestJS)
