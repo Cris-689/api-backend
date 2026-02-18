@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: global-ingress
+  namespace: jenkins
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Para SSL automático
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: public
+  tls:
+  - hosts:
+    - uzbuzbiz.es
+    - api.uzbuzbiz.es
+    secretName: global-tls-cert
+  rules:
+  - host: uzbuzbiz.es
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service # Coincide con deployment-frontend.yaml
+            port:
+              number: 80
+  - host: api.uzbuzbiz.es
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service # Coincide con deployment-backend.yaml
+            port:
+              number: 80
