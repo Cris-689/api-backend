@@ -60,7 +60,7 @@ spec:
                         // 1. Desplegamos la base de datos primero
                         sh "kubectl apply -f k8s/postgres-db.yaml"
                         // 2. Desplegamos la API
-                        sh "kubectl apply -f k8s/deployment.yaml"
+                        sh "kubectl apply -f k8s/Deployment.yaml"
                         
                         // Forzamos el reinicio para que pille la imagen nueva
                         sh "kubectl rollout restart deployment backend-api -n jenkins"
