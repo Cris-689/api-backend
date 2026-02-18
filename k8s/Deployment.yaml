@@ -40,6 +40,11 @@ spec:
             secretKeyRef:
               name: backend-db-secrets
               key: DB_NAME
+        - name: UPLOAD_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-db-secrets
+              key: UPLOAD_API_KEY
         - name: DB_PORT
           value: "5432" # Este no es secreto, puede quedarse así
 
