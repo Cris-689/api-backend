@@ -27,7 +27,7 @@ spec:
 
     environment {
         DOCKER_IMAGE = "uzbuzbiz/api-nest"
-        REGISTRY_CRED = "Docker Hub Acceso" // El ID que pusiste en Jenkins
+        REGISTRY_CRED = "docker-hub-creds" // El ID que pusiste en Jenkins
     }
 
     stages {
