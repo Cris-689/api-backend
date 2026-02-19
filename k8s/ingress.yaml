@@ -4,14 +4,17 @@ metadata:
   name: global-ingress
   namespace: jenkins
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Para SSL automático
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Añadimos esto para que Jenkins no se desconecte en procesos largos
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
 spec:
   ingressClassName: public
   tls:
   - hosts:
     - uzbuzbiz.es
     - api.uzbuzbiz.es
+    - jenkins.uzbuzbiz.es
     secretName: global-tls-cert
   rules:
   - host: uzbuzbiz.es
@@ -21,7 +24,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: frontend-service # Coincide con deployment-frontend.yaml
+            name: frontend-service
             port:
               number: 80
   - host: api.uzbuzbiz.es
@@ -31,6 +34,16 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: backend-service # Coincide con deployment-backend.yaml
+            name: backend-service
             port:
               number: 80
+  - host: jenkins.uzbuzbiz.es
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jenkins
+            port:
+              number: 8080
