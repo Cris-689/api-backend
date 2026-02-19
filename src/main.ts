@@ -6,11 +6,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 1. Habilitar CORS
-  // Esto permite que tu frontend (uzbuzbiz.es) pueda hacer peticiones a la API
-  app.enableCors();
+  // Esto permite que el frontend (uzbuzbiz.es) pueda hacer peticiones a la API
+  app.enableCors({
+    // Solo permitimos peticiones desde el dominio hacia la api
+    origin: [
+      'https://uzbuzbiz.es',
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // Permitir envío de cookies o headers de auth si fuera necesario
+  });
 
   // 2. Validación Global
-  // Esto hace que los DTOs que creamos antes funcionen automáticamente
+  // Esto hace que los DTOs funcionen automáticamente
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // Elimina datos que no estén en el DTO
