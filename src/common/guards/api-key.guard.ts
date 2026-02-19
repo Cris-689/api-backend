@@ -10,7 +10,7 @@ export class ApiKeyGuard implements CanActivate {
     const apiKey = request.headers['x-api-key']; // Buscamos la llave en esta cabecera
 
     if (apiKey !== this.VALID_KEY) {
-      throw new UnauthorizedException('No tienes permiso para subir archivos aquí 🚫');
+      throw new UnauthorizedException('No tienes permiso para subir archivos aquí');
     }
     return true;
   }
