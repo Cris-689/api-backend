@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. Habilitar CORS
+  // Habilitar CORS
   // Esto permite que el frontend (uzbuzbiz.es) pueda hacer peticiones a la API
   app.enableCors({
     // Solo permitimos peticiones desde el dominio hacia la api
@@ -16,18 +16,31 @@ async function bootstrap() {
     credentials: true, // Permitir envío de cookies o headers de auth si fuera necesario
   });
 
-  // 2. Validación Global
+  // Validación Global
   // Esto hace que los DTOs funcionen automáticamente
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina datos que no estén en el DTO
-      forbidNonWhitelisted: true, // Lanza error si envían datos extra
-      transform: true, // Convierte tipos automáticamente (ej: string a número)
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
       stopAtFirstError: true,
+      exceptionFactory: (errors) => {
+        // Buscamos el primer error que tenga mensajes (constraints)
+        const firstError = errors[0];
+
+        // Extraemos el mensaje de forma segura
+        // Usamos el operador '|| {}' para que Object.values nunca reciba undefined
+        const message = firstError.constraints
+          ? Object.values(firstError.constraints)[0]
+          : 'Error de validación desconocido';
+
+        // Devolvemos la excepción con el string limpio
+        return new BadRequestException(message);
+      },
     }),
   );
 
-  // 3. Puerto dinámico
+  // Puerto dinámico
   // Usamos el puerto que nos dé el entorno o el 3000 por defecto
   const port = process.env.PORT || 3000;
 
