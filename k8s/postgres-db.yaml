@@ -8,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi # Con 2GB para empezar 
+      storage: 2Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,6 +16,7 @@ metadata:
   name: postgres-db
   namespace: jenkins
 spec:
+  replicas: 1 
   selector:
     matchLabels:
       app: postgres
@@ -24,6 +25,8 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        fsGroup: 999 # Asegura permisos de grupo para el volumen
       containers:
       - name: postgres
         image: postgres:15-alpine
@@ -48,10 +51,46 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
+        # Volúmenes necesarios para el modo ReadOnly
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: run-volume
+          mountPath: /var/run/postgresql
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 999
+          runAsGroup: 999
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
+        # Verificación de salud de la base de datos
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 15
+          periodSeconds: 20
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
+      # Definición de carpetas temporales con permiso de escritura
+      - name: tmp-volume
+        emptyDir: {}
+      - name: run-volume
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

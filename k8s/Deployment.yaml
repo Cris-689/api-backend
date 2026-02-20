@@ -4,7 +4,12 @@ metadata:
   name: backend-api
   namespace: jenkins
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1       # Crea un pod nuevo antes de matar el viejo
+      maxUnavailable: 0 # Nunca deja la web sin servicio durante el despliegue
   selector:
     matchLabels:
       app: backend-api
@@ -13,43 +18,73 @@ spec:
       labels:
         app: backend-api
     spec:
+      # Evita que el contenedor use el usuario root del nodo
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: backend-api
         image: uzbuzbiz/api-nest:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 3000 # Puerto interno de NestJS
+        - containerPort: 3000
+        
+        # SEGURIDAD: Restricciones del contenedor
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true # Evita que un atacante guarde scripts en el disco
+          capabilities:
+            drop: ["ALL"]
+            
+        # Límites para no saturar la VPS
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"
+
+        # Kubernetes vigila que la API no esté congelada
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
         env:
+        - name: NODE_ENV
+          value: "production"
         - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: backend-db-secrets
-              key: DB_HOST
+          valueFrom: { secretKeyRef: { name: backend-db-secrets, key: DB_HOST } }
         - name: DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: backend-db-secrets
-              key: DB_USERNAME
+          valueFrom: { secretKeyRef: { name: backend-db-secrets, key: DB_USERNAME } }
         - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: backend-db-secrets
-              key: DB_PASSWORD
+          valueFrom: { secretKeyRef: { name: backend-db-secrets, key: DB_PASSWORD } }
         - name: DB_NAME
-          valueFrom:
-            secretKeyRef:
-              name: backend-db-secrets
-              key: DB_NAME
+          valueFrom: { secretKeyRef: { name: backend-db-secrets, key: DB_NAME } }
         - name: UPLOAD_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: backend-db-secrets
-              key: UPLOAD_API_KEY
+          valueFrom: { secretKeyRef: { name: backend-db-secrets, key: UPLOAD_API_KEY } }
         - name: DB_PORT
-          value: "5432" # Este no es secreto, puede quedarse así
+          value: "5432"
 
+        # Necesario si usas readOnlyRootFilesystem
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -59,5 +94,5 @@ spec:
   selector:
     app: backend-api
   ports:
-    - port: 80          # Puerto por el que escucha el Service (Ingress)
-      targetPort: 3000  # Puerto al que redirige dentro del Pod (NestJS)
+    - port: 80
+      targetPort: 3000
