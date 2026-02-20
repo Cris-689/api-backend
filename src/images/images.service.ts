@@ -1,26 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Image } from './entities/image.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ImagesService {
   constructor(
     @InjectRepository(Image)
-    private imagesRepository: Repository<Image>,
+    private readonly repository: Repository<Image>,
   ) {}
 
-  // Método para guardar la imagen en la base de datos
-  async create(file: Express.Multer.File): Promise<Image> {
-    const newImage = this.imagesRepository.create({
-      filename: file.originalname,
-      mimetype: file.mimetype,
-      data: file.buffer, // Aquí guardamos los bytes de la imagen
-    });
-    return await this.imagesRepository.save(newImage);
+  async save(filename: string, mimetype: string, data: Buffer): Promise<Image> {
+    return this.repository.save({ filename, mimetype, data });
   }
 
-  async findOne(id: number): Promise<Image | null> {
-    return await this.imagesRepository.findOneBy({ id });
+  async findOne(id: number): Promise<Image> {
+    const image = await this.repository.findOneBy({ id });
+    if (!image) throw new NotFoundException('La imagen no existe');
+    return image;
   }
 }

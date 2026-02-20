@@ -11,7 +11,6 @@ import { Image } from './entities/image.entity'; // Asegúrate de que la ruta se
   ],
   controllers: [ImagesController],
   providers: [ImagesService],
-  // Si vas a usar este servicio en otros módulos (como el de Usuarios), añádelo aquí:
   exports: [ImagesService] 
 })
 export class ImagesModule {}

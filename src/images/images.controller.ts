@@ -25,7 +25,7 @@ export class ImagesController {
       }),
     ) file: Express.Multer.File,
   ) {
-    const savedImage = await this.imagesService.create(file);
+    const savedImage = await this.imagesService.save(file.originalname, file.mimetype, file.buffer);
     return {
       id: savedImage.id,
       message: 'Imagen subida con éxito a perritos_db',
