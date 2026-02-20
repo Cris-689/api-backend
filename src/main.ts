@@ -23,6 +23,7 @@ async function bootstrap() {
       whitelist: true, // Elimina datos que no estén en el DTO
       forbidNonWhitelisted: true, // Lanza error si envían datos extra
       transform: true, // Convierte tipos automáticamente (ej: string a número)
+      stopAtFirstError: true,
     }),
   );
 
