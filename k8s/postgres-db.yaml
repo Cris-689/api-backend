@@ -27,6 +27,8 @@ spec:
     spec:
       securityContext:
         fsGroup: 999 # Asegura permisos de grupo para el volumen
+        runAsGroup: 999   # El proceso corre con el grupo 999
+        runAsUser: 999    # El proceso corre con el usuario 999
       containers:
       - name: postgres
         image: postgres:15-alpine
