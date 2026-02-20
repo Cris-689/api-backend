@@ -8,10 +8,22 @@ export class ImagesService {
   constructor(
     @InjectRepository(Image)
     private readonly repository: Repository<Image>,
-  ) {}
+  ) { }
 
-  async save(filename: string, mimetype: string, data: Buffer): Promise<Image> {
-    return this.repository.save({ filename, mimetype, data });
+  async save(
+    filename: string,
+    mimetype: string,
+    data: Buffer,
+    nombre: string,
+    descripcion?: string
+  ): Promise<Image> {
+    return this.repository.save({
+      filename,
+      mimetype,
+      data,
+      nombre,
+      descripcion
+    });
   }
 
   async findOne(id: number): Promise<Image> {

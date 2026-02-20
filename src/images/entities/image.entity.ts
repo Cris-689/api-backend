@@ -11,6 +11,12 @@ export class Image {
   @Column()
   mimetype: string;
 
-  @Column({ type: 'bytea' }) // Tipo binario para PostgreSQL
+  @Column({ type: 'bytea' }) // Para Postgres
   data: Buffer;
+
+  @Column()
+  nombre: string;
+
+  @Column({ nullable: true })
+  descripcion: string;
 }
