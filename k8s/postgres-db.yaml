@@ -33,7 +33,7 @@ spec:
       initContainers:
       - name: fix-permissions
         image: busybox
-        command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data"]
+        command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data && chmod -R 700 /var/lib/postgresql/data"]
         securityContext:
           runAsUser: 0
         volumeMounts:
