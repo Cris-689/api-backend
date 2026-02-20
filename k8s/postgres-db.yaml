@@ -16,7 +16,7 @@ metadata:
   name: postgres-db
   namespace: jenkins
 spec:
-  replicas: 1 
+  replicas: 1
   selector:
     matchLabels:
       app: postgres
@@ -26,15 +26,28 @@ spec:
         app: postgres
     spec:
       securityContext:
-        fsGroup: 999 # Asegura permisos de grupo para el volumen
-        runAsGroup: 999   # El proceso corre con el grupo 999
-        runAsUser: 999    # El proceso corre con el usuario 999
+        fsGroup: 999
+        runAsGroup: 999
+        runAsUser: 999
+      
+      initContainers:
+      - name: fix-permissions
+        image: busybox
+        command: ["sh", "-c", "chown -R 999:999 /var/lib/postgresql/data"]
+        securityContext:
+          runAsUser: 0
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      
       containers:
       - name: postgres
         image: postgres:15-alpine
         ports:
         - containerPort: 5432
         env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata 
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
@@ -53,7 +66,6 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
-        # Volúmenes necesarios para el modo ReadOnly
         - name: tmp-volume
           mountPath: /tmp
         - name: run-volume
@@ -73,7 +85,6 @@ spec:
             drop:
               - ALL
           readOnlyRootFilesystem: true
-        # Verificación de salud de la base de datos
         readinessProbe:
           exec:
             command: ["pg_isready", "-U", "postgres"]
@@ -84,11 +95,11 @@ spec:
             command: ["pg_isready", "-U", "postgres"]
           initialDelaySeconds: 15
           periodSeconds: 20
+      
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:
           claimName: postgres-pvc
-      # Definición de carpetas temporales con permiso de escritura
       - name: tmp-volume
         emptyDir: {}
       - name: run-volume
