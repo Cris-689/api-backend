@@ -27,7 +27,7 @@ spec:
 
     environment {
         DOCKER_IMAGE = "uzbuzbiz/api-nest"
-        REGISTRY_CRED = "docker-hub-creds" // El ID que pusiste en Jenkins
+        REGISTRY_CRED = "docker-hub-creds" // El ID en Jenkins
     }
 
     stages {
@@ -61,7 +61,8 @@ spec:
                         sh "kubectl apply -f k8s/postgres-db.yaml"
                         // 2. Desplegamos la API
                         sh "kubectl apply -f k8s/Deployment.yaml"
-                        
+                        // 3. Desplegamod el ingress
+                        sh "kubectl apply -f k8s/ingress.yaml"
                         // Forzamos el reinicio para que pille la imagen nueva
                         sh "kubectl rollout restart deployment backend-api -n jenkins"
                     }
