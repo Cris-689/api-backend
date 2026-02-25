@@ -61,7 +61,7 @@ spec:
                         sh "kubectl apply -f k8s/postgres-db.yaml"
                         // 2. Desplegamos la API
                         sh "kubectl apply -f k8s/Deployment.yaml"
-                        // 3. Desplegamod el ingress
+                        // 3. Desplegamos el ingress
                         sh "kubectl apply -f k8s/ingress.yaml"
                         // Forzamos el reinicio para que pille la imagen nueva
                         sh "kubectl rollout restart deployment backend-api -n jenkins"
