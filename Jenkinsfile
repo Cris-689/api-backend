@@ -69,7 +69,7 @@ spec:
                         sh "kubectl apply -f k8s/Deployment.yaml -n jenkins"
 
                         // Actualización de la imagen con el nuevo tag para forzar el rollout
-                        sh "kubectl set image deployment/backend-api backend=${DOCKER_IMAGE}:${BUILD_NUMBER} -n jenkins"
+                        sh "kubectl set image deployment/backend-api api-nest=${DOCKER_IMAGE}:${BUILD_NUMBER} -n jenkins"
 
                         // Verificación del estado del despliegue
                         sh "kubectl rollout status deployment/backend-api -n jenkins"
