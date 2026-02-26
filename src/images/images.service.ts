@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from './entities/image.entity';
 import { Repository } from 'typeorm';
+import sharp from 'sharp';
+import * as path from 'path'; // Para manejo seguro de nombres
 
 @Injectable()
 export class ImagesService {
+  private readonly logger = new Logger(ImagesService.name);
+
   constructor(
     @InjectRepository(Image)
     private readonly repository: Repository<Image>,
@@ -17,13 +21,32 @@ export class ImagesService {
     nombre: string,
     descripcion?: string
   ): Promise<Image> {
-    return this.repository.save({
-      filename,
-      mimetype,
-      data,
-      nombre,
-      descripcion
-    });
+    try {
+      // 1. Procesamiento con Sharp
+      const processedBuffer = await sharp(data)
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toBuffer();
+
+      // 2. Nombre de archivo seguro
+      const baseName = path.parse(filename).name;
+      const newFilename = `${baseName}.webp`;
+
+      // 3. Creación y guardado usando la entidad
+      const imageEntity = this.repository.create({
+        filename: newFilename,
+        mimetype: 'image/webp',
+        data: processedBuffer,
+        nombre,
+        descripcion
+      });
+
+      return await this.repository.save(imageEntity);
+
+    } catch (error) {
+      this.logger.error(`Error procesando imagen ${filename}: ${error.message}`);
+      throw new BadRequestException('El archivo no se pudo procesar como imagen.');
+    }
   }
 
   async findOne(id: number): Promise<Image> {
