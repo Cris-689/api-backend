@@ -11,6 +11,8 @@ spec:
   containers:
   - name: docker
     image: docker:latest
+    securityContext:
+      runAsUser: 0
     command: ['sleep', 'infinity']
     volumeMounts:
     - name: dockersock
@@ -27,10 +29,9 @@ spec:
     }
 
     environment {
-        DOCKER_USER_HUB = "uzbuzbiz" 
+        DOCKER_USER_HUB = "uzbuzbiz"
         DOCKER_IMAGE    = "${DOCKER_USER_HUB}/api-nest"
         REGISTRY_CRED   = "docker-hub-creds"
-        // Redirigir la configuración de docker al workspace
         DOCKER_CONFIG   = "${WORKSPACE}/.docker" 
     }
 
@@ -39,7 +40,6 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        // Creamos la carpeta antes de usarla para evitar errores
                         sh "mkdir -p ${DOCKER_CONFIG}"
                         sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest ."
                     }
@@ -72,7 +72,8 @@ spec:
                         sh "kubectl set image deployment/backend-api backend=${DOCKER_IMAGE}:${BUILD_NUMBER} -n jenkins"
 
                         // Verificación del estado del despliegue
-                        sh "kubectl rollout status deployment/backend-api -n jenkins"                    }
+                        sh "kubectl rollout status deployment/backend-api -n jenkins"
+                    }
                 }
             }
         }
