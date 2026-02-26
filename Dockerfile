@@ -10,8 +10,8 @@ RUN npm run build
 # ejecucion
 FROM uzbuzbiz/node-base:latest
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
+COPY --from=builder --chown=uz:uz /app/package*.json ./
+COPY --from=builder --chown=uz:uz /app/dist ./dist
 
 RUN npm install --only=production
 
