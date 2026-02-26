@@ -30,6 +30,8 @@ spec:
         DOCKER_USER_HUB = "uzbuzbiz" 
         DOCKER_IMAGE    = "${DOCKER_USER_HUB}/api-nest"
         REGISTRY_CRED   = "docker-hub-creds"
+        // Redirigir la configuración de docker al workspace
+        DOCKER_CONFIG   = "${WORKSPACE}/.docker" 
     }
 
     stages {
@@ -37,7 +39,8 @@ spec:
             steps {
                 container('docker') {
                     script {
-                        // Construcción con tag único de build y tag latest
+                        // Creamos la carpeta antes de usarla para evitar errores
+                        sh "mkdir -p ${DOCKER_CONFIG}"
                         sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest ."
                     }
                 }
@@ -69,8 +72,7 @@ spec:
                         sh "kubectl set image deployment/backend-api backend=${DOCKER_IMAGE}:${BUILD_NUMBER} -n jenkins"
 
                         // Verificación del estado del despliegue
-                        sh "kubectl rollout status deployment/backend-api -n jenkins"
-                    }
+                        sh "kubectl rollout status deployment/backend-api -n jenkins"                    }
                 }
             }
         }
@@ -79,8 +81,10 @@ spec:
     post {
         always {
             container('docker') {
-                // Limpieza de credenciales
+                // Limpiar las credenciales uasdas
                 sh "docker logout"
+                // Limpiar la carpeta temporal de config
+                sh "rm -rf ${DOCKER_CONFIG}"
             }
         }
     }
