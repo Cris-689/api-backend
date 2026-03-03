@@ -11,13 +11,38 @@ service:
 
 ingress:
   enabled: true
-  className: nginx
-  host: api.uzbuzbiz.es
+  className: public
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: api.uzbuzbiz.es
+      paths:
+        - path: /
+          pathType: Prefix
+          isApi: true # Para que apunte al servicio de la API de Helm
+    - host: uzbuzbiz.es
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: frontend-service
+          servicePort: 80
+    - host: jenkins.uzbuzbiz.es
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: jenkins
+          servicePort: 8080
   tls:
-    secretName: api-uzbuzbiz-tls
+    - secretName: api-uzbuzbiz-tls
+      hosts:
+        - api.uzbuzbiz.es
+    - secretName: uzbuzbiz-tls
+      hosts:
+        - uzbuzbiz.es
+    - secretName: jenkins-tls
+      hosts:
+        - jenkins.uzbuzbiz.es
 
 database:
   host: "postgres-service"

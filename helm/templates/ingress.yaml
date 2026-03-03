@@ -1,3 +1,4 @@
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,17 +8,28 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   tls:
+    {{- range .Values.ingress.tls }}
     - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: {{ .Values.ingress.tls.secretName }}
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
   rules:
-    - host: {{ .Values.ingress.host }}
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ .Release.Name }}-service
+                # Si es la API, usamos el nombre generado por Helm. 
+                # Si no, usamos el nombre manual que pusimos en values.yaml.
+                name: {{ if .isApi }}{{ $.Release.Name }}-service{{ else }}{{ .serviceName }}{{ end }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: {{ if .isApi }}{{ $.Values.service.port }}{{ else }}{{ .servicePort }}{{ end }}
+          {{- end }}
+    {{- end }}
+{{- end }}
