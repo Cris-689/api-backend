@@ -45,6 +45,7 @@ ingress:
         - jenkins.uzbuzbiz.es
 
 database:
+  image: "postgres:16"
   host: "postgres-service"
   port: 5432
   existingSecret: "backend-db-secrets"
