@@ -4,6 +4,11 @@ metadata:
   name: {{ .Release.Name }}-api
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -12,11 +17,29 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      # Seguridad a nivel de POD
+      securityContext:
+        runAsNonRoot: {{ .Values.security.runAsNonRoot }}
+        runAsUser: {{ .Values.security.runAsUser }}
+        fsGroup: {{ .Values.security.fsGroup }}
+      
       containers:
         - name: api-container
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          
+          # Seguridad a nivel de CONTENEDOR
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.security.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.security.readOnlyRootFilesystem }}
+            capabilities:
+              drop: ["ALL"]
+          
           ports:
             - containerPort: {{ .Values.service.port }}
+          
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
           env:
             - name: DB_HOST
               value: {{ .Values.database.host | quote }}
@@ -37,8 +60,22 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.database.existingSecret }}
                   key: DB_PASSWORD
-            # Variable de respaldo para NestJS
-            - name: DATABASE_URL
-              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            # no subir cosas sin contraseña
+            - name: UPLOAD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.existingSecret }}
+                  key: UPLOAD_API_KEY
             - name: PORT
               value: {{ .Values.service.port | quote }}
+            - name: NODE_ENV
+              value: "production"
+
+          # Necesario porque el sistema de archivos es read-only
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+      
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
