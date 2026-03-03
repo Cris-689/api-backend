@@ -1,0 +1,25 @@
+replicaCount: 1
+
+image:
+  repository: uzbuzbiz/api-backend
+  pullPolicy: Always
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.uzbuzbiz.es
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  tls:
+    secretName: api-uzbuzbiz-tls
+
+database:
+  host: "postgres-service"
+  port: 5432
+  existingSecret: "backend-db-secrets"
