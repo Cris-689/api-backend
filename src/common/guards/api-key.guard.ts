@@ -2,7 +2,6 @@ import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
-  // En producción, esto vendrá de una variable de entorno
   private readonly VALID_KEY = process.env.UPLOAD_API_KEY;
 
   canActivate(context: ExecutionContext): boolean {
