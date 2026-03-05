@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Image } from './entities/image.entity';
 import { Repository } from 'typeorm';
 import sharp from 'sharp';
-import * as path from 'path'; // Para manejo seguro de nombres
+import * as crypto from 'crypto'; // Módulo nativo para generar IDs aleatorios
 
 @Injectable()
 export class ImagesService {
@@ -28,9 +28,10 @@ export class ImagesService {
         .webp({ quality: 80 })
         .toBuffer();
 
-      // 2. Nombre de archivo seguro
-      const baseName = path.parse(filename).name;
-      const newFilename = `${baseName}.webp`;
+      // 2. Nombre de archivo aleatorio (UUID)
+      // Generamos un nombre único para evitar duplicados y anonimizar
+      const randomId = crypto.randomUUID();
+      const newFilename = `${randomId}.webp`;
 
       // 3. Creación y guardado usando la entidad
       const imageEntity = this.repository.create({
