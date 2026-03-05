@@ -53,6 +53,7 @@ spec:
                                 --destination ${IMAGE_NAME}:latest \
                                 --cache=true \
                                 --cache-dir=/cache \
+                                --cache-repo=${IMAGE_NAME}-cache \
                                 --snapshot-mode=redo \
                                 --use-new-run
                             """
