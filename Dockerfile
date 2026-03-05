@@ -13,7 +13,7 @@ FROM uzbuzbiz/node-base:latest
 COPY --from=builder --chown=uz:uz /app/package*.json ./
 COPY --from=builder --chown=uz:uz /app/dist ./dist
 
-RUN npm install --only=production
+RUN npm install --omit=dev
 
 USER uz
 
