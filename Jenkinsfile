@@ -13,6 +13,8 @@ spec:
     volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker
+      - name: kaniko-cache
+        mountPath: /cache
   - name: helm
     image: alpine/helm:latest
     command: ["/bin/sh", "-c"]
@@ -20,6 +22,9 @@ spec:
   volumes:
     - name: kaniko-secret
       emptyDir: {}
+    - name: kaniko-cache
+      persistentVolumeClaim:
+        claimName: kaniko-cache-pvc
 '''
         }
     }
@@ -27,25 +32,29 @@ spec:
     environment {
         IMAGE_NAME = "uzbuzbiz/api-backend"
         HELM_RELEASE_NAME = "api-release"
+        NAMESPACE = "api-prod"
     }
 
     stages {
         stage('Build & Push with Kaniko') {
             steps {
                 container('kaniko') {
-                    // Usamos las credenciales de Jenkins 'docker-hub-creds'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', 
                                                     usernameVariable: 'DOCKER_USER', 
                                                     passwordVariable: 'DOCKER_PASS')]) {
                         script {
-                            // Generamos el config.json de Docker al vuelo para que Kaniko pueda hacer el push
+                            // Generación de config.json más limpia
                             sh """
                             echo "{\\\"auths\\\":{\\\"https://index.docker.io/v1/\\\":{\\\"auth\\\":\\\"\$(echo -n \${DOCKER_USER}:\${DOCKER_PASS} | base64)\\\"}}}" > /kaniko/.docker/config.json
                             
-                            /kaniko/executor --context `pwd` \
-                                --dockerfile `pwd`/Dockerfile \
+                            /kaniko/executor --context ${WORKSPACE} \
+                                --dockerfile ${WORKSPACE}/Dockerfile \
                                 --destination ${IMAGE_NAME}:${env.BUILD_ID} \
-                                --destination ${IMAGE_NAME}:latest
+                                --destination ${IMAGE_NAME}:latest \
+                                --cache=true \
+                                --cache-dir=/cache \
+                                --snapshot-mode=redo \
+                                --use-new-run
                             """
                         }
                     }
@@ -57,10 +66,11 @@ spec:
             steps {
                 container('helm') {
                     script {
-                        // Desplegamos usando el chart de la carpeta /helm
-                        // El tag de la imagen coincide con el ID de construcción de Jenkins
+                        // Añadimos el flag --create-namespace y el uso de la variable NAMESPACE
                         sh """
                         helm upgrade --install ${HELM_RELEASE_NAME} ./helm \
+                            --namespace ${env.NAMESPACE} \
+                            --create-namespace \
                             --set image.tag=${env.BUILD_ID} \
                             --wait
                         """
@@ -72,10 +82,10 @@ spec:
 
     post {
         success {
-            echo "Despliegue exitoso en api.uzbuzbiz.es"
+            echo "Despliegue exitoso en api.uzbuzbiz.es (Namespace: ${env.NAMESPACE})"
         }
         failure {
-            echo "El pipeline ha fallado. Revisa los logs de la consola."
+            echo "El pipeline ha fallado. Revisa los logs de Kaniko o Helm."
         }
     }
 }

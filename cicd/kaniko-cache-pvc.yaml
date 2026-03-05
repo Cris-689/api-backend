@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kaniko-cache-pvc
+  namespace: jenkins  # IMPORTANTE: Debe ser el mismo namespace donde corre Jenkins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi     # Espacio para las capas de Node.js
