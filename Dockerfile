@@ -1,14 +1,14 @@
 # --- FASE 1: CONSTRUCCIÓN ---
-FROM uzbuzbiz/node-base:latest AS builder
+FROM uzbuzbiz/ciberseguridad:latest AS builder
 
-# Usamos el nuevo usuario de la base custom
+# Usamos el usuario 'uz' y el directorio definidos en la base
 COPY --chown=uz:uz package*.json ./
 RUN npm install
 COPY --chown=uz:uz . .
 RUN npm run build
 
 # ejecucion
-FROM uzbuzbiz/node-base:latest
+FROM uzbuzbiz/ciberseguridad:latest
 
 COPY --from=builder --chown=uz:uz /app/package*.json ./
 COPY --from=builder --chown=uz:uz /app/dist ./dist
