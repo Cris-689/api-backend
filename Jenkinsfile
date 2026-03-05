@@ -33,7 +33,7 @@ spec:
         stage('Build & Push with Kaniko') {
             steps {
                 container('kaniko') {
-                    // Usamos tus credenciales de Jenkins 'docker-hub-creds'
+                    // Usamos las credenciales de Jenkins 'docker-hub-creds'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', 
                                                     usernameVariable: 'DOCKER_USER', 
                                                     passwordVariable: 'DOCKER_PASS')]) {
