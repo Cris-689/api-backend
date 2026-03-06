@@ -42,7 +42,7 @@ export class ImagesController {
       return {
         id: savedImage.id,
         nombre: savedImage.nombre,
-        nombreOriginal: savedImage.filename,
+        archivo: savedImage.filename,
         url: `https://api.uzbuzbiz.es/images/${savedImage.id}`, // URL directa para el front
         message: '¡Imagen guardado con éxito!',
       };

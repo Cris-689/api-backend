@@ -32,7 +32,7 @@ spec:
     environment {
         IMAGE_NAME = "uzbuzbiz/api-backend"
         HELM_RELEASE_NAME = "api-release"
-        NAMESPACE = "jenkins"
+        NAMESPACE = "api-prod"
     }
 
     stages {
