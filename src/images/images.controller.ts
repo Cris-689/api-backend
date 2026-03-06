@@ -32,7 +32,7 @@ export class ImagesController {
   ) {
     try {
       const savedImage = await this.imagesService.save(
-        file.originalname,
+        file.filename,
         file.mimetype,
         file.buffer,
         createImageDto.nombre,
@@ -42,13 +42,14 @@ export class ImagesController {
       return {
         id: savedImage.id,
         nombre: savedImage.nombre,
+        nombreOriginal: savedImage.filename,
         url: `https://api.uzbuzbiz.es/images/${savedImage.id}`, // URL directa para el front
-        message: '¡Perrito guardado con éxito!',
+        message: '¡Imagen guardado con éxito!',
       };
     } catch (error) {
       this.logger.error(`Error subiendo imagen: ${error.message}`, error.stack);
       throw new InternalServerErrorException({
-        message: 'No se pudo guardar la imagen del perrito.',
+        message: 'No se pudo guardar la imagen.',
         error: 'DATABASE_ERROR',
       });
     }

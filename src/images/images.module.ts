@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm'; // Importa esto
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImagesService } from './images.service';
 import { ImagesController } from './images.controller';
-import { Image } from './entities/image.entity'; // Asegúrate de que la ruta sea correcta
+import { Image } from './entities/image.entity';
 
 @Module({
   imports: [
