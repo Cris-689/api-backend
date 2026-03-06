@@ -51,7 +51,7 @@ spec:
                                 --dockerfile ${WORKSPACE}/Dockerfile \
                                 --destination ${IMAGE_NAME}:${env.BUILD_ID} \
                                 --destination ${IMAGE_NAME}:latest \
-                                --cache=true \
+                                --cache=false \
                                 --cache-dir=/cache \
                                 --snapshot-mode=redo \
                                 --use-new-run

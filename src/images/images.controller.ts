@@ -32,7 +32,7 @@ export class ImagesController {
   ) {
     try {
       const savedImage = await this.imagesService.save(
-        file.filename,
+        file.originalname,
         file.mimetype,
         file.buffer,
         createImageDto.nombre,
