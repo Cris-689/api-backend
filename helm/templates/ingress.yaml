@@ -2,33 +2,46 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  # Nombre dinámico del Ingress basado en el nombre de la versión de Helm
   name: {{ .Release.Name }}-ingress
   annotations:
+    # Inserción de anotaciones personalizadas (útil para cert-manager o límites de subida de Nginx)
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
 spec:
+  # Define qué controlador de Ingress debe procesar estas reglas (ej. nginx)
   ingressClassName: {{ .Values.ingress.className }}
+  
+  # Configuración para el cifrado SSL/TLS (HTTPS)
   tls:
     {{- range .Values.ingress.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
         {{- end }}
+      # Nombre del Secret de Kubernetes que contiene el certificado SSL
       secretName: {{ .secretName }}
     {{- end }}
+
+  # Reglas de enrutamiento basadas en el nombre de dominio (Host)
   rules:
     {{- range .Values.ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}
+          # Ruta URL (ej. / o /api) que activará la regla
           - path: {{ .path }}
             pathType: {{ .pathType }}
             backend:
               service:
-                # Si es la API, usamos el nombre generado por Helm. 
-                # Si no, usamos el nombre manual que pusimos en values.yaml.
+                # LÓGICA DE SELECCIÓN DE SERVICE:
+                # 1. Si el objeto en values.yaml tiene 'isApi: true', apunta al service generado por Helm
+                # 2. Si es falso, usa el 'serviceName' definido manualmente para otros componentes
                 name: {{ if .isApi }}{{ $.Release.Name }}-service{{ else }}{{ .serviceName }}{{ end }}
                 port:
+                  # LÓGICA DE PUERTO:
+                  # Usa el puerto global definido en .Values.service.port si es la API
+                  # De lo contrario, usa el puerto específico indicado en la lista de rutas
                   number: {{ if .isApi }}{{ $.Values.service.port }}{{ else }}{{ .servicePort }}{{ end }}
           {{- end }}
     {{- end }}
