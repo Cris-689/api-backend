@@ -41,7 +41,7 @@ microk8s kubectl create secret generic backend-db-secrets \
   --from-literal=DB_USERNAME="<USUARIO_BD>" \
   --from-literal=DB_PASSWORD="<PASS_BD>" \
   --from-literal=UPLOAD_API_KEY="<TU_API_KEY_SECRETA>"
-
+```
 ### Análisis Detallado de las Fases del Pipeline
 
 El pipeline de integración y despliegue continuo (CI/CD) se ejecuta íntegramente dentro del clúster de Kubernetes. En lugar de depender de un servidor tradicional con Docker instalado, Jenkins levanta un pod temporal con dos contenedores especializados (`kaniko` para construir y `helm` para desplegar) que se destruyen al finalizar.
