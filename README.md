@@ -79,7 +79,7 @@ stage('Build & Push with Kaniko') {
         }
     }
 }
-
+```
 Desglose del código:
  * withCredentials: Extrae de forma segura el usuario y contraseña de Docker Hub guardados en Jenkins y los inyecta temporalmente como las variables de entorno DOCKER_USER y DOCKER_PASS.
  * Generación de config.json: Kaniko necesita un archivo de configuración estándar de Docker para poder subir la imagen al registro privado/público. Este comando toma el usuario y contraseña, los codifica en formato Base64 nativamente y crea el archivo en la ruta /kaniko/.docker/config.json.
@@ -88,6 +88,7 @@ Desglose del código:
  * Optimizaciones de rendimiento (--snapshot-mode=redo y --use-new-run): Modifican la forma en que Kaniko calcula qué archivos han cambiado en el sistema de archivos entre capa y capa del Dockerfile, acelerando significativamente el proceso de construcción.
 Etapa 2: Deploy (Despliegue)
 Una vez que la imagen está compilada y alojada de forma segura en Docker Hub, el pipeline salta al contenedor de Helm para actualizar la infraestructura.
+```groovy
 stage('Deploy with Helm') {
     steps {
         container('helm') {
@@ -103,7 +104,7 @@ stage('Deploy with Helm') {
         }
     }
 }
-
+```
 Desglose del código:
  * helm upgrade --install: Es un comando idempotente. Si es la primera vez que se ejecuta el pipeline, instalará toda la arquitectura desde cero. Si la aplicación ya existe, calculará las diferencias y actualizará solo lo necesario.
  * --namespace y --create-namespace: Despliega los recursos en el espacio de nombres definido en las variables de entorno (api-prod). Si este namespace no existe previamente en el clúster de Kubernetes, Helm lo crea sobre la marcha.
