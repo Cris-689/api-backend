@@ -33,7 +33,7 @@ export class ImagesService {
       const randomId = crypto.randomUUID();
       const newFilename = `${randomId}.webp`;
 
-      // 3. Creación y guardado usando la entidad
+      // 3. Creación y guardado usando la entidad.
       const imageEntity = this.repository.create({
         filename: newFilename,
         mimetype: 'image/webp',
