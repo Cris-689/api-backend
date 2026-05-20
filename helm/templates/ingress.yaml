@@ -5,6 +5,8 @@ metadata:
   # Nombre dinámico del Ingress basado en el nombre de la versión de Helm
   name: {{ .Release.Name }}-ingress
   annotations:
+    # Prueba para ver si funciona correctamente la aplicacion.
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     # Inserción de anotaciones personalizadas (útil para cert-manager o límites de subida de Nginx)
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
 spec:
