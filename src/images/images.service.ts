@@ -45,7 +45,10 @@ export class ImagesService {
       return await this.repository.save(imageEntity);
 
     } catch (error) {
-      this.logger.error(`Error procesando imagen ${filename}: ${error.message}`);
+      // 1. Verificamos si es un Error real; si no, lo convertimos a string.
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      this.logger.error(`Error procesando imagen ${filename}: ${errorMessage}`);
       throw new BadRequestException('El archivo no se pudo procesar como imagen.');
     }
   }
@@ -54,5 +57,14 @@ export class ImagesService {
     const image = await this.repository.findOneBy({ id });
     if (!image) throw new NotFoundException('La imagen no existe');
     return image;
+  }
+
+  async findAll() {
+    return await this.repository.find({
+      select: ['id', 'nombre', 'descripcion', 'filename', 'mimetype'],
+      order: {
+        id: 'DESC', // Mostrar las más nuevas primero
+      },
+    });
   }
 }

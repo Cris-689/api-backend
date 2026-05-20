@@ -5,7 +5,8 @@ import {
   StreamableFile, ParseIntPipe, Res
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Response } from 'express'; // Ahora solo para tipos, sin dramas
+import type { Response } from 'express';
+import 'multer';
 import { ImagesService } from './images.service';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 import { CreateImageDto } from './dto/create-image.dto';
@@ -29,7 +30,7 @@ export class ImagesController {
       }),
     ) file: Express.Multer.File,
     @Body() createImageDto: CreateImageDto,
-  ) {
+  ) { 
     try {
       const savedImage = await this.imagesService.save(
         file.originalname,
@@ -47,11 +48,36 @@ export class ImagesController {
         message: '¡Imagen guardado con éxito!',
       };
     } catch (error) {
-      this.logger.error(`Error subiendo imagen: ${error.message}`, error.stack);
+      // Escudo protector:
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      this.logger.error(`Error subiendo imagen: ${errorMessage}`, errorStack);
       throw new InternalServerErrorException({
         message: 'No se pudo guardar la imagen.',
         error: 'DATABASE_ERROR',
       });
+    }
+  }
+
+  @Get()
+  async getAllImages() {
+    try {
+      const images = await this.imagesService.findAll();
+      
+      return images.map(img => ({
+        id: img.id,
+        nombre: img.nombre,
+        descripcion: img.descripcion,
+        filename: img.filename,
+        mimetype: img.mimetype,
+      }));
+    } catch (error) {
+      // Escudo protector:
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      this.logger.error(`Error recuperando listado de imágenes: ${errorMessage}`);
+      throw new InternalServerErrorException('Error al obtener la galería');
     }
   }
 
@@ -73,7 +99,10 @@ export class ImagesController {
     } catch (error) {
       if (error instanceof NotFoundException) throw error;
 
-      this.logger.error(`Error recuperando imagen ${id}: ${error.message}`);
+      // Escudo protector:
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      this.logger.error(`Error recuperando imagen ${id}: ${errorMessage}`);
       throw new InternalServerErrorException('Error al obtener la imagen');
     }
   }

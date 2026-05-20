@@ -3,20 +3,20 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 @Entity()
 export class Image {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  filename: string;
+  filename!: string;
 
   @Column()
-  mimetype: string;
+  mimetype!: string;
 
   @Column({ type: 'bytea' }) // Para Postgres
-  data: Buffer;
+  data!: Buffer;
 
   @Column()
-  nombre: string;
+  nombre!: string;
 
   @Column({ nullable: true })
-  descripcion: string;
+  descripcion!: string;
 }

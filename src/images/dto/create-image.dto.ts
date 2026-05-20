@@ -4,7 +4,7 @@ export class CreateImageDto {
   @MaxLength(20, { message: 'El nombre no puede tener más de 20 caracteres' })
   @MinLength(3, { message: 'El nombre debe tener al menos 3 caracteres' })
   @IsNotEmpty({ message: 'El nombre del perrito es obligatorio' }) // <-- Ahora se ejecuta primero
-  nombre: string;
+  nombre!: string;
 
   @IsString()
   @IsOptional()
