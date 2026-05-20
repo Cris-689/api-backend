@@ -2,7 +2,7 @@ import {
   Controller, Get, Post, Param, UseInterceptors, UploadedFile,
   ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards,
   Body, InternalServerErrorException, Logger, NotFoundException,
-  StreamableFile, ParseIntPipe, Res
+  StreamableFile, ParseIntPipe, Res, Delete
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -104,6 +104,24 @@ export class ImagesController {
 
       this.logger.error(`Error recuperando imagen ${id}: ${errorMessage}`);
       throw new InternalServerErrorException('Error al obtener la imagen');
+    }
+  }
+  @Delete(':id')
+  @UseGuards(ApiKeyGuard) // <-- Protegido para que nadie borre sin la Clave de API
+  async removeImage(@Param('id', ParseIntPipe) id: number) {
+    try {
+      await this.imagesService.remove(id);
+      return { 
+        success: true, 
+        message: 'Imagen eliminada correctamente del clúster', 
+        id 
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error procesando solicitud de borrado para ID ${id}: ${errorMessage}`);
+      throw new InternalServerErrorException('Error al intentar eliminar la imagen');
     }
   }
 }

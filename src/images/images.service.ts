@@ -67,4 +67,19 @@ export class ImagesService {
       },
     });
   }
+  async remove(id: number): Promise<void> {
+    try {
+      const result = await this.repository.delete(id);
+      
+      if (result.affected === 0) {
+        throw new NotFoundException(`La imagen con ID ${id} no existe.`);
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error eliminando imagen ${id} en BD: ${errorMessage}`);
+      throw new BadRequestException('No se pudo eliminar la imagen de la base de datos.');
+    }
+  }
 }
